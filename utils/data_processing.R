@@ -35,6 +35,7 @@ routes_processing <- function() {
   routes_dt <- fread(file.path(data_20181217,"routes_17.12.2018.csv"))
   routes_dt$start_date <- fastPOSIXct(routes_dt$start_date)
   
+  
   return(routes_dt)
 }
 
