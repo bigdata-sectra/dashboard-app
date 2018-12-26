@@ -27,6 +27,7 @@ travel_times_processing <- function() {
   travel_times_dt$day_type <- ifelse(travel_times_dt$weekday <= 5, "laboral",
                                      ifelse(travel_times_dt$weekday == 6, "sabado",
                                             "domingo"))
+  travel_times_dt$velocity <- 3.6 * travel_times_dt$length / travel_times_dt$time
   
   return(setDT(travel_times_dt))
 }
