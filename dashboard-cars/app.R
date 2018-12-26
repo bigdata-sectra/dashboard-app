@@ -4,6 +4,8 @@ source(file.path(rproj_dir,"utils","getLibrary.R"))
 source(file.path(rproj_dir,"utils","paths.R"))
 source(file.path(rproj_dir,"utils","data_processing.R"))
 source(file.path(rproj_dir,"utils","outliers.R"))
+source(file.path(rproj_dir,"utils","get_polyline.R"))
+source(file.path(rproj_dir,"utils","get_arrowhead.R"))
 
 #----- packages -----#
 getLibrary("shiny")
@@ -51,6 +53,12 @@ ui <- fluidPage(
 server <- function(input, output) {
   
   output$routes_map <- renderLeaflet({
+    polyline_matrix <- get_polyline_matrix(r_dt$line[which(r_dt$name == input$route)])
+    from_point_arrow <- list(x = polyline_matrix[nrow(polyline_matrix)-1, 1], 
+                             y = polyline_matrix[nrow(polyline_matrix)-1, 2])
+    to_point_arrow <- list(x = polyline_matrix[nrow(polyline_matrix), 1], 
+                           y = polyline_matrix[nrow(polyline_matrix), 2])
+    arrow_head <- get_arrowhead (from_point_arrow, to_point_arrow)
     leaflet() %>% 
       addTiles("http://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
                            attribution = paste(
@@ -58,8 +66,11 @@ server <- function(input, output) {
                              "&copy; <a href=\"http://cartodb.com/attributions\">CartoDB</a>"
                            )
     ) %>% 
-      setView(-70.6127706553628,-33.4519419806409, zoom = 10) 
-    # %>% addPolylines(data = mydf2, lng = ~long, lat = ~lat, group = ~group)
+      setView(lng = polyline_matrix[floor(nrow(polyline_matrix)/2),1], 
+              lat = polyline_matrix[floor(nrow(polyline_matrix)/2),2], 
+              zoom = 16) %>%
+      addPolylines(lng = polyline_matrix[,1], lat = polyline_matrix[,2]) %>%
+      addPolylines(lng = arrow_head[,"x"], lat = arrow_head[,"y"], color = "#ff0033") # arrow head
   })
   
   tt_dt_w_outliers <- reactive(get_outliers(tt_dt, input$time_grouper))
