@@ -8,6 +8,7 @@ source(file.path(rproj_dir,"utils","data_processing.R"))
 source(file.path(rproj_dir,"utils","outliers.R"))
 source(file.path(rproj_dir,"utils","get_polyline.R"))
 source(file.path(rproj_dir,"utils","get_arrowhead.R"))
+source(file.path(rproj_dir,"utils","heatmap.R"))
 
 #----- packages -----#
 getLibrary("shiny")
@@ -56,7 +57,9 @@ ui <- fluidPage(
       HTML("<br>"),
       plotlyOutput("travel_time_agg_plot"),
       HTML("<br>"),
-      plotlyOutput("travel_time_agg_w_o_outliers_plot")
+      plotlyOutput("travel_time_agg_w_o_outliers_plot"),
+      HTML("<br>"),
+      plotlyOutput("travel_time_heatmap")
       
     )
   )
@@ -176,6 +179,12 @@ server <- function(input, output) {
       layout(title = paste('Datos agregados cada', input$time_grouper,'minutos para el día', input$date1, '(sin outliers)')) %>%
       layout(plot_bgcolor = bg_color) %>% 
       layout(paper_bgcolor = container_color)
+  })
+  
+  output$travel_time_heatmap <- renderPlotly({
+    tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
+    p <- heatmap_generator(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper,bg_color,container_color)
+    p
   })
   
   
