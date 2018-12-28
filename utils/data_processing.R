@@ -12,6 +12,8 @@ travel_times_processing <- function() {
   travel_times_dt <- fread(file.path(data_20181217,"travel_times_17.12.2018.csv"))
   routes_dt <- fread(file.path(data_20181217,"routes_17.12.2018.csv"))
   
+  travel_times_dt <- unique(travel_times_dt, by=c("name", "updatetime"))
+  
   travel_times_dt$updatetime <- fastPOSIXct(travel_times_dt$updatetime, tz = "GMT")
   travel_times_dt <- travel_times_dt[which(travel_times_dt$updatetime <= fastPOSIXct("2018-11-30") &
                                              travel_times_dt$updatetime >= fastPOSIXct("2018-11-01")),]
