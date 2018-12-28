@@ -17,49 +17,41 @@ source(file.path(rproj_dir,"custom-plots","heatmap.R"))
 
 #----- packages -----#
 getLibrary("shiny")
-getLibrary("shinythemes")
 getLibrary("data.table")
 getLibrary("plotly")
 getLibrary("lubridate")
 getLibrary("dplyr")
 getLibrary("leaflet")
 getLibrary("shinycssloaders")
+getLibrary("shinydashboard")
 
 #----- data -----#
 tt_dt <- travel_times_processing()
 r_dt <- routes_processing()
 
-# Define UI for application that draws a histogram
-ui <- fluidPage(
-  # Application theme
-  theme = shinytheme("slate"),
-  # Application title
-  titlePanel("Car Travel Times"),
-  # Sidebar with a slider input for number of bins 
-  sidebarLayout(
-    sidebarPanel(style = "position:fixed;width:inherit;",
-      selectInput('route', label = 'Pick a route: ', choices = sort(r_dt$name)),
-      dateInput('date1', label = 'Pick a date: ', value = as.Date("2018-11-01")),
-      sliderInput('time_grouper', label = 'Pick a time interval: ', min = 5, max = 60, value = 15, step = 5),
-      selectInput('day_type_grouper', label = "Select a day type grouper: ", choices = c('weekday', 'day_type'))
-      # ,
-      # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h'))
-    ),
-    
-    # Show a plot of the generated distribution
-    mainPanel(
-      withSpinner(leafletOutput("routes_map")),
-      HTML("<br>"),
-      withSpinner(plotlyOutput("travel_time_plot")),
-      HTML("<br>"),
-      withSpinner(plotlyOutput("outliers_boxplots")),
-      HTML("<br>"),
-      withSpinner(plotlyOutput("travel_time_agg_plot")),
-      HTML("<br>"),
-      withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot")),
-      HTML("<br>"),
-      withSpinner(plotlyOutput("travel_time_heatmap"))
-    )
+# Define UI for application
+ui <- dashboardPage(
+  dashboardHeader(title = "Car Travel Times"),
+  dashboardSidebar(
+    selectInput('route', label = 'Pick a route: ', choices = sort(r_dt$name)),   
+    dateInput('date1', label = 'Pick a date: ', value = as.Date("2018-11-01")),
+    sliderInput('time_grouper', label = 'Pick a time interval: ', min = 5, max = 60, value = 15, step = 5),  
+    selectInput('day_type_grouper', label = "Select a day type grouper: ", choices = c('weekday', 'day_type'))
+    # ,
+    # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
+  ),
+  dashboardBody(
+    withSpinner(leafletOutput("routes_map")),
+    HTML("<br>"),
+    withSpinner(plotlyOutput("travel_time_plot")),
+    HTML("<br>"),
+    withSpinner(plotlyOutput("outliers_boxplots")),
+    HTML("<br>"),
+    withSpinner(plotlyOutput("travel_time_agg_plot")),
+    HTML("<br>"),
+    withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot")),
+    HTML("<br>"),
+    withSpinner(plotlyOutput("travel_time_heatmap"))
   )
 )
 
