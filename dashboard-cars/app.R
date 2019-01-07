@@ -33,7 +33,7 @@ r_dt <- routes_processing()
 ui <- dashboardPage(
   dashboardHeader(title = "Car Travel Times"),
   dashboardSidebar(
-    menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
+    #menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
   ),
   dashboardBody(
     
@@ -68,7 +68,9 @@ ui <- dashboardPage(
         tabPanel("Tab1", withSpinner(plotlyOutput("outliers_boxplots"))),
         tabPanel("Tab2", withSpinner(plotlyOutput("travel_time_heatmap")))
       )
-    )
+    ),
+    fluidRow(textOutput("checking_datatables"))   
+    
   )
 )
 
@@ -80,9 +82,13 @@ server <- function(input, output) {
     route_map(r_dt,input$route)
   })
   
+  tt_dt_f <- reactive({
+    tt_dt[which(tt_dt$name == input$route & tt_dt$date == input$date1),]
+  })
+  
   # calculo de outliers
   tt_dt_w_outliers <- reactive({
-    get_outliers(tt_dt, 
+    get_outliers(tt_dt_f(), 
                  input$time_grouper, 
                  day_type_grouper = input$day_type_grouper)
     })
@@ -90,7 +96,13 @@ server <- function(input, output) {
   # plot of raw data with marked outliers
   output$travel_time_plot <- renderPlotly({
     tt_dt_out <- tt_dt_w_outliers()
+    
+    validate(
+      need(nrow(tt_dt_out)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+    )
+    
     raw_travel_times(tt_dt_out, input$route, input$date1)
+    
     })
   
   # plot of boxplots for every time interval
@@ -101,14 +113,20 @@ server <- function(input, output) {
   
   # calculate data frame grouped
   tt_dt_grouped <- reactive({
-    tt_dt %>%
-      group_by(name, date, updatetime = floor_date(tt_dt$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
+    tt_dt_f <- tt_dt_f()
+    tt_dt_f %>%
+      group_by(name, date, updatetime = floor_date(tt_dt_f$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
       summarise(delay = mean(delay))
     })
   
   # plot of agreggated data
   output$travel_time_agg_plot <- renderPlotly({
     tt_dt_grouped <- tt_dt_grouped()
+    
+    validate(
+      need(nrow(tt_dt_grouped)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+    )
+    
     agg_travel_times(tt_dt_grouped, input$route, input$date1, input$time_grouper)
   })
   
@@ -124,6 +142,11 @@ server <- function(input, output) {
   # plot of agreggated data w/o outliers
   output$travel_time_agg_w_o_outliers_plot <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
+    
+    validate(
+      need(nrow(tt_dt_grouped_w_o_outliers)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+    )
+    
     agg_travel_times_w_o_outliers(tt_dt_grouped_w_o_outliers, input$route, input$date1, input$time_grouper)
   })
   
@@ -131,6 +154,10 @@ server <- function(input, output) {
   output$travel_time_heatmap <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
     heatmap_generator(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper) 
+  })
+  
+  output$checking_datatables <- renderText({
+    print(nrow(tt_dt_w_outliers()))
   })
   
 }

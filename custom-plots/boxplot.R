@@ -28,8 +28,6 @@ boxplot <- function(dt, input_day_type, input_route, input_date){
           pointpos = 0
   ) %>% 
     layout(title = paste('Boxplot de tiempos de viaje para los dias', dia_texto)) %>% 
-    layout(plot_bgcolor = bg_color) %>% 
-    layout(paper_bgcolor = container_color) %>% 
     layout(margin = plot_margins)
   
   return(p)

@@ -13,11 +13,9 @@ agg_travel_times <- function(dt, input_route, input_date, input_time_grouper){
               name = 'travel time agreggated',
               type = 'scatter', 
               mode = 'lines+markers', 
-              line = list(color = line_color, width = 2),
-              marker = list(color = line_color, size = 4)) %>%
+              line = list(width = 2),
+              marker = list(size = 4)) %>%
     layout(title = paste('Datos agregados cada', input_time_grouper,'minutos para el dia', input_date, '(con outliers)')) %>%
-    layout(plot_bgcolor = bg_color) %>% 
-    layout(paper_bgcolor = container_color) %>% 
     layout(margin = plot_margins)
   
   return(p)
