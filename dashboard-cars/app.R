@@ -33,25 +33,42 @@ r_dt <- routes_processing()
 ui <- dashboardPage(
   dashboardHeader(title = "Car Travel Times"),
   dashboardSidebar(
-    selectInput('route', label = 'Pick a route: ', choices = sort(r_dt$name)),   
-    dateInput('date1', label = 'Pick a date: ', value = as.Date("2018-11-01")),
-    sliderInput('time_grouper', label = 'Pick a time interval: ', min = 5, max = 60, value = 15, step = 5),  
-    selectInput('day_type_grouper', label = "Select a day type grouper: ", choices = c('weekday', 'day_type'))
-    # ,
-    # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
+    menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
   ),
   dashboardBody(
-    withSpinner(leafletOutput("routes_map")),
-    HTML("<br>"),
-    withSpinner(plotlyOutput("travel_time_plot")),
-    HTML("<br>"),
-    withSpinner(plotlyOutput("outliers_boxplots")),
-    HTML("<br>"),
-    withSpinner(plotlyOutput("travel_time_agg_plot")),
-    HTML("<br>"),
-    withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot")),
-    HTML("<br>"),
-    withSpinner(plotlyOutput("travel_time_heatmap"))
+    
+    fluidRow(
+      
+      box(
+        title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE,
+        selectInput('route', label = 'Pick a route: ', choices = sort(r_dt$name)),   
+        dateInput('date1', label = 'Pick a date: ', value = as.Date("2018-11-01")),
+        sliderInput('time_grouper', label = 'Pick a time interval: ', min = 5, max = 60, value = 15, step = 5),  
+        selectInput('day_type_grouper', label = "Select a day type grouper: ", choices = c('weekday', 'day_type'))
+        # ,
+        # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
+      ),
+      box(
+        title = "Histogram", status = "primary", solidHeader = TRUE, collapsible = TRUE,
+        withSpinner(leafletOutput("routes_map"))
+      )
+      
+    ),
+    
+    fluidRow(
+      tabBox(
+        title = "First tabBox",
+        # The id lets us use input$tabset1 on the server to find the current tab
+        tabPanel("Tab1", withSpinner(plotlyOutput("travel_time_plot"))),
+        tabPanel("Tab2", withSpinner(plotlyOutput("travel_time_agg_plot"))),
+        tabPanel("Tab3", withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot")))
+      ),
+      tabBox(
+        selected = "Tab1",
+        tabPanel("Tab1", withSpinner(plotlyOutput("outliers_boxplots"))),
+        tabPanel("Tab2", withSpinner(plotlyOutput("travel_time_heatmap")))
+      )
+    )
   )
 )
 
