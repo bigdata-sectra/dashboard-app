@@ -14,6 +14,7 @@ source(file.path(rproj_dir,"custom-plots","boxplot.R"))
 source(file.path(rproj_dir,"custom-plots","agg_travel_times.R"))
 source(file.path(rproj_dir,"custom-plots","agg_travel_times_w_o_outliers.R"))
 source(file.path(rproj_dir,"custom-plots","heatmap.R"))
+source(file.path(rproj_dir,"custom-plots","heatmap_w_o_outliers.R"))
 
 #----- packages -----#
 getLibrary("shiny")
@@ -38,7 +39,6 @@ ui <- dashboardPage(
       menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
       menuItem("Sobre nosotros", icon = icon("th"), tabName = "about-us")
     )
-    #menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
   ),
   dashboardBody(
     
@@ -51,15 +51,12 @@ ui <- dashboardPage(
                   dateInput('date1', label = 'Fecha: ', value = as.Date("2018-11-05")),
                   sliderInput('time_grouper', label = 'Selecciona un intervalo para agrupar los valores: ', min = 5, max = 60, value = 30, step = 5),  
                   selectizeInput('day_type_grouper', label = "Selecciona la manera en que se agrupan los valores: ", choices = c('Tipo de día [L/S/D]' = 'day_type', 'Día de la semana' = 'weekday'))
-                  # ,
-                  # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
                 ),
                 box(
                   title = "Mapa", status = "primary", solidHeader = TRUE, collapsible = TRUE,
                   withSpinner(leafletOutput("routes_map"))
                 )
               ),
-              # valueBox(10 * 2, "New Orders", icon = icon("credit-card"))
               fluidRow(
                 tabBox(
                   title = "Datos por día", width = 12,
@@ -70,12 +67,13 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 tabBox(
-                  title = "Datos generales",
+                  title = "",
                   tabPanel("Boxplot", withSpinner(plotlyOutput("outliers_boxplots")))
                 ),
                 tabBox(
-                  title = "Datos generales",
-                  tabPanel("Heatmap", withSpinner(plotlyOutput("travel_time_heatmap")))
+                  title = "",
+                  tabPanel("Heatmap (c/o)", withSpinner(plotlyOutput("travel_time_heatmap"))),
+                  tabPanel("Heatmap (s/o)", withSpinner(plotlyOutput("travel_time_heatmap_w_o_outliers")))
                 )
               ) 
       ),
@@ -94,6 +92,7 @@ server <- function(input, output) {
     route_map(r_dt,input$route)
   })
   
+  # filtering by route name to speed things up
   tt_dt_f <- reactive({
     tt_dt[which(tt_dt$name == input$route),]
   })
@@ -115,7 +114,6 @@ server <- function(input, output) {
     )
     
     raw_travel_times(tt_dt_out, input$route, input$date1)
-    
     })
   
   # plot of boxplots for every time interval
@@ -131,10 +129,10 @@ server <- function(input, output) {
   
   # calculate data frame grouped
   tt_dt_grouped <- reactive({
-    tt_dt_f <- tt_dt_f()
-    tt_dt_f %>%
-      group_by(name, date, updatetime = floor_date(tt_dt_f$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
-      summarise(delay = mean(delay))
+    tt_dt_w_outliers <- tt_dt_w_outliers()
+    tt_dt_w_outliers %>%
+      group_by(name, date, updatetime = floor_date(tt_dt_w_outliers$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
+      summarise(delay = mean(delay), out_sum = sum(outlier))
     })
   
   # plot of agreggated data
@@ -170,10 +168,16 @@ server <- function(input, output) {
     agg_travel_times_w_o_outliers(tt_dt_grouped_w_o_outliers, input$route, input$date1, input$time_grouper)
   })
   
-  # plot heatmap
+  # plot heatmap w/ outliers
   output$travel_time_heatmap <- renderPlotly({
+    tt_dt_grouped <- tt_dt_grouped()
+    heatmap_w_outliers(tt_dt_grouped,input$route,input$time_grouper, input$date1) 
+  })
+  
+  # plot heatmap w/o outliers
+  output$travel_time_heatmap_w_o_outliers <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
-    heatmap_generator(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper) 
+    heatmap_w_o_outliers(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper, input$date1) 
   })
   
 }

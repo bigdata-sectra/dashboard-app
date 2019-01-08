@@ -7,7 +7,7 @@ getLibrary("plotly")
 getLibrary("lubridate")
 getLibrary("dplyr")
 
-heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
+heatmap_w_o_outliers <- function(dt, input_route, input_time_grouper, input_date){
   
   dt$floor_date <- floor_date(dt$updatetime, paste(as.character(input_time_grouper), " mins"))
   dt$floor_hour <- ifelse(hour(dt$floor_date) < 10, paste('0', hour(dt$floor_date), sep=''), hour(dt$floor_date))
@@ -29,26 +29,11 @@ heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
               inherit = F,
               line = list(width = 2, color = line_color),
               marker = list(size = 4, color = line_color)
-              )
-    
-    if (sum(dt$out_sum[which(dt$name == input_route & dt$date == input_date)]) > 0) {
-      p <- add_trace(p, 
-                     x = dt$floor_time[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
-                     y = dt$date[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
-                     hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
-                                       "<br> N :", dt$out_sum[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)]),
-                     name = 'calculated with outliers',
-                     mode = 'markers',
-                     type = 'scatter',
-                     inherit = F,
-                     marker = list(size = 4, color = marker_color)
-      )
-    }
-    
-    p <- layout(p, title = paste('Mapa de calor cada', input_time_grouper,'mins (sin outliers)'))
-    p <- layout(p, margin = plot_margins)
-    p <- layout(p, hovermode = 'compare')
-    p <- layout(p, showlegend = FALSE)
+              )%>%
+    #add_segments(x = min(dt$floor_time), xend = max(dt$floor_time), y = input_date, yend = input_date, inherit = F) %>%
+    layout(title = paste('Mapa de calor cada', input_time_grouper,'mins (sin outliers)')) %>%
+    layout(margin = plot_margins) %>%
+    layout(hovermode = 'compare')
   
   return(p)
 }
