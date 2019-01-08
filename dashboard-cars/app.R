@@ -28,49 +28,61 @@ getLibrary("shinydashboard")
 #----- data -----#
 tt_dt <- travel_times_processing()
 r_dt <- routes_processing()
+routes_names <- sort(unique(tt_dt$name))
 
 # Define UI for application
 ui <- dashboardPage(
-  dashboardHeader(title = "Car Travel Times"),
+  dashboardHeader(title = "Tiempos de viaje"),
   dashboardSidebar(
+    sidebarMenu(
+      menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+      menuItem("Sobre nosotros", icon = icon("th"), tabName = "about-us")
+    )
     #menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard"))
   ),
   dashboardBody(
     
-    fluidRow(
-      
-      box(
-        title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE,
-        selectInput('route', label = 'Pick a route: ', choices = sort(r_dt$name)),   
-        dateInput('date1', label = 'Pick a date: ', value = as.Date("2018-11-01")),
-        sliderInput('time_grouper', label = 'Pick a time interval: ', min = 5, max = 60, value = 15, step = 5),  
-        selectInput('day_type_grouper', label = "Select a day type grouper: ", choices = c('weekday', 'day_type'))
-        # ,
-        # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
+    tabItems(
+      tabItem(tabName = "dashboard",
+              fluidRow(
+                box(
+                  title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE,
+                  selectInput('route', label = 'Ruta: ', choices = routes_names, selected = routes_names[length(routes_names)]),   
+                  dateInput('date1', label = 'Fecha: ', value = as.Date("2018-11-05")),
+                  sliderInput('time_grouper', label = 'Selecciona un intervalo para agrupar los valores: ', min = 5, max = 60, value = 30, step = 5),  
+                  selectizeInput('day_type_grouper', label = "Selecciona la manera en que se agrupan los valores: ", choices = c('Tipo de día [L/S/D]' = 'day_type', 'Día de la semana' = 'weekday'))
+                  # ,
+                  # selectInput('display_unit', label = "Select a display unit: ", choices = c('s/km', 'km/h')
+                ),
+                box(
+                  title = "Mapa", status = "primary", solidHeader = TRUE, collapsible = TRUE,
+                  withSpinner(leafletOutput("routes_map"))
+                )
+              ),
+              # valueBox(10 * 2, "New Orders", icon = icon("credit-card"))
+              fluidRow(
+                tabBox(
+                  title = "Datos por día", width = 12,
+                  tabPanel("Agrupados (c/o)", withSpinner(plotlyOutput("travel_time_agg_plot"))),
+                  tabPanel("Agrupados (s/o)", withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot"))),
+                  tabPanel("Crudos", withSpinner(plotlyOutput("travel_time_plot")))
+                )
+              ),
+              fluidRow(
+                tabBox(
+                  title = "Datos generales",
+                  tabPanel("Boxplot", withSpinner(plotlyOutput("outliers_boxplots")))
+                ),
+                tabBox(
+                  title = "Datos generales",
+                  tabPanel("Heatmap", withSpinner(plotlyOutput("travel_time_heatmap")))
+                )
+              ) 
       ),
-      box(
-        title = "Histogram", status = "primary", solidHeader = TRUE, collapsible = TRUE,
-        withSpinner(leafletOutput("routes_map"))
+      tabItem(tabName = "about-us",
+              h2("Desarrollado por el equipo de Big Data en Transporte de Sectra, MTT.")
       )
-      
-    ),
-    
-    fluidRow(
-      tabBox(
-        title = "First tabBox",
-        # The id lets us use input$tabset1 on the server to find the current tab
-        tabPanel("Tab1", withSpinner(plotlyOutput("travel_time_plot"))),
-        tabPanel("Tab2", withSpinner(plotlyOutput("travel_time_agg_plot"))),
-        tabPanel("Tab3", withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot")))
-      ),
-      tabBox(
-        selected = "Tab1",
-        tabPanel("Tab1", withSpinner(plotlyOutput("outliers_boxplots"))),
-        tabPanel("Tab2", withSpinner(plotlyOutput("travel_time_heatmap")))
-      )
-    ),
-    fluidRow(textOutput("checking_datatables"))   
-    
+    )
   )
 )
 
@@ -83,7 +95,7 @@ server <- function(input, output) {
   })
   
   tt_dt_f <- reactive({
-    tt_dt[which(tt_dt$name == input$route & tt_dt$date == input$date1),]
+    tt_dt[which(tt_dt$name == input$route),]
   })
   
   # calculo de outliers
@@ -96,9 +108,10 @@ server <- function(input, output) {
   # plot of raw data with marked outliers
   output$travel_time_plot <- renderPlotly({
     tt_dt_out <- tt_dt_w_outliers()
+    tt_dt_out <- tt_dt_out[which(tt_dt_out$date == input$date1),]
     
     validate(
-      need(nrow(tt_dt_out)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+      need(nrow(tt_dt_out)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
     raw_travel_times(tt_dt_out, input$route, input$date1)
@@ -108,6 +121,11 @@ server <- function(input, output) {
   # plot of boxplots for every time interval
   output$outliers_boxplots <- renderPlotly({
     tt_dt_out <- tt_dt_w_outliers()
+    
+    validate(
+      need(nrow(tt_dt_out)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
+    )
+    
     boxplot(tt_dt_out, input$day_type_grouper, input$route, input$date1)
     })
   
@@ -122,9 +140,10 @@ server <- function(input, output) {
   # plot of agreggated data
   output$travel_time_agg_plot <- renderPlotly({
     tt_dt_grouped <- tt_dt_grouped()
+    tt_dt_grouped <- tt_dt_grouped[which(tt_dt_grouped$date == input$date1),]
     
     validate(
-      need(nrow(tt_dt_grouped)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+      need(nrow(tt_dt_grouped)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
     agg_travel_times(tt_dt_grouped, input$route, input$date1, input$time_grouper)
@@ -142,9 +161,10 @@ server <- function(input, output) {
   # plot of agreggated data w/o outliers
   output$travel_time_agg_w_o_outliers_plot <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
+    tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers[which(tt_dt_grouped_w_o_outliers$date == input$date1),]
     
     validate(
-      need(nrow(tt_dt_grouped_w_o_outliers)>0, "NO DATA AVAILABLE FOR THIS DAY!")
+      need(nrow(tt_dt_grouped_w_o_outliers)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
     agg_travel_times_w_o_outliers(tt_dt_grouped_w_o_outliers, input$route, input$date1, input$time_grouper)
@@ -154,10 +174,6 @@ server <- function(input, output) {
   output$travel_time_heatmap <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
     heatmap_generator(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper) 
-  })
-  
-  output$checking_datatables <- renderText({
-    print(nrow(tt_dt_w_outliers()))
   })
   
 }

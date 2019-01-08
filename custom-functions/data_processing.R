@@ -15,7 +15,7 @@ travel_times_processing <- function() {
   travel_times_dt <- unique(travel_times_dt, by=c("name", "updatetime"))
   
   travel_times_dt$updatetime <- fastPOSIXct(travel_times_dt$updatetime, tz = "GMT")
-  travel_times_dt <- travel_times_dt[which(travel_times_dt$updatetime <= fastPOSIXct("2018-11-30") &
+  travel_times_dt <- travel_times_dt[which(travel_times_dt$updatetime < fastPOSIXct("2018-12-01") &
                                              travel_times_dt$updatetime >= fastPOSIXct("2018-11-01")),]
 
   travel_times_dt <- dplyr::inner_join(travel_times_dt, routes_dt[, c("name", "length")], by = "name")
@@ -26,9 +26,9 @@ travel_times_processing <- function() {
   
   travel_times_dt$weekday <- wday(travel_times_dt$date, week_start = 1)
   
-  travel_times_dt$day_type <- ifelse(travel_times_dt$weekday <= 5, "laboral",
-                                     ifelse(travel_times_dt$weekday == 6, "sabado",
-                                            "domingo"))
+  travel_times_dt$day_type <- ifelse(travel_times_dt$weekday <= 5, "L",
+                                     ifelse(travel_times_dt$weekday == 6, "S",
+                                            "D"))
   travel_times_dt$velocity <- 3.6 * travel_times_dt$length / travel_times_dt$time
   
   return(setDT(travel_times_dt))

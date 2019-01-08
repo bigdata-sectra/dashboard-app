@@ -15,7 +15,8 @@ agg_travel_times <- function(dt, input_route, input_date, input_time_grouper){
               mode = 'lines+markers', 
               line = list(width = 2),
               marker = list(size = 4)) %>%
-    layout(title = paste('Datos agregados cada', input_time_grouper,'minutos para el dia', input_date, '(con outliers)')) %>%
+    layout(title = paste('Datos agregados cada', input_time_grouper,'minutos para el dia', input_date, '(con outliers)'), 
+           yaxis = list(title="s/km")) %>%
     layout(margin = plot_margins)
   
   return(p)

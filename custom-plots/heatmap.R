@@ -18,7 +18,7 @@ heatmap_generator <- function(dt, input_route, input_time_grouper){
                y = dt$date[which(dt$name == input_route)],
                z = dt$delay[which(dt$name == input_route)], 
                type = "heatmap") %>%
-    layout(title = paste('Mapa de calor cada', input_time_grouper,'mins. para la ruta', input_route, '(sin outliers)')) %>%
+    layout(title = paste('Mapa de calor cada', input_time_grouper,'mins (sin outliers)')) %>%
     layout(margin = plot_margins)
   
   return(p)

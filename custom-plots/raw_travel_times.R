@@ -29,6 +29,7 @@ raw_travel_times <- function(dt, input_route, input_date){
   }
   #TODO: dplyr "%>%" operator is not working properly 
     p <- layout(p, title = paste('Datos crudos dia', input_date))
+    p <- layout(p, yaxis = list(title="s/km"))
     p <- layout(p, legend = list(x = 0.05, y = 0.95))
     p <- layout(p, margin = plot_margins)
   
