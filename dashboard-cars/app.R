@@ -68,12 +68,14 @@ ui <- dashboardPage(
               fluidRow(
                 tabBox(
                   title = "",
-                  tabPanel("Boxplot", withSpinner(plotlyOutput("outliers_boxplots")))
+                  tabPanel("Boxplot", withSpinner(plotlyOutput("outliers_boxplots"))),
+                  tabPanel("info", "")
                 ),
                 tabBox(
                   title = "",
                   tabPanel("Heatmap (c/o)", withSpinner(plotlyOutput("travel_time_heatmap"))),
-                  tabPanel("Heatmap (s/o)", withSpinner(plotlyOutput("travel_time_heatmap_w_o_outliers")))
+                  tabPanel("Heatmap (s/o)", withSpinner(plotlyOutput("travel_time_heatmap_w_o_outliers"))),
+                  tabPanel("info", "")
                 )
               ) 
       ),

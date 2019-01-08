@@ -18,7 +18,8 @@ heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
                y = dt$date[which(dt$name == input_route)],
                z = dt$delay[which(dt$name == input_route)], 
                type = "heatmap",
-               name = 'heatmap') %>%
+               name = 'heatmap',
+               colors = colorRamp(c("#4ECDC4", "#FF6B6B"))) %>%
     add_trace(x = dt$floor_time[which(dt$name == input_route & dt$date == input_date)],
               y = dt$date[which(dt$name == input_route & dt$date == input_date)],
               name = as.character(input_date),

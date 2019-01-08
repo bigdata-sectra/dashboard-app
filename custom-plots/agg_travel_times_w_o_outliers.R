@@ -18,7 +18,7 @@ agg_travel_times_w_o_outliers <- function(dt, input_route, input_date, input_tim
               # error_y = list(array = dt$stdv[which(dt$name == input_route & dt$date == input_date)],
               #                opacity = 0.5)
     ) %>%
-    layout(title = paste('Datos agregados cada', input_time_grouper,'minutos para el dia', input_date, '(sin outliers)'),
+    layout(title = paste('Perfil agregados cada', input_time_grouper,'minutos para el dia', input_date, '(sin outliers)'),
            yaxis = list(title="s/km")) %>%
     layout(margin = plot_margins)
   
