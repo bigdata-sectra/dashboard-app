@@ -29,8 +29,8 @@ route_map <- function(r_dt, input_route){
     setView(lng = polyline_matrix[floor(nrow(polyline_matrix)/2),1], 
             lat = polyline_matrix[floor(nrow(polyline_matrix)/2),2], 
             zoom = 15) %>%
-    addPolylines(lng = polyline_matrix[,1], lat = polyline_matrix[,2], color = line_color, opacity = 1) %>%
-    addPolylines(lng = arrow_head[,"x"], lat = arrow_head[,"y"], color = marker_color, opacity = 1) # arrow head
+    addPolylines(lng = polyline_matrix[,1], lat = polyline_matrix[,2], color = c_primary_trace, opacity = 1) %>%
+    addPolylines(lng = arrow_head[,"x"], lat = arrow_head[,"y"], color = c_dots, opacity = 1) # arrow head
   
   return(l)
   

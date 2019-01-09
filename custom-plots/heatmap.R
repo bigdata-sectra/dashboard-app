@@ -19,7 +19,7 @@ heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
                z = dt$delay[which(dt$name == input_route)], 
                type = "heatmap",
                name = 'heatmap',
-               colors = colorRamp(c("#4ECDC4", "#FF6B6B"))) %>%
+               colors = colorRamp(c(c_scale_low, c_scale_high))) %>%
     add_trace(x = dt$floor_time[which(dt$name == input_route & dt$date == input_date)],
               y = dt$date[which(dt$name == input_route & dt$date == input_date)],
               name = as.character(input_date),
@@ -28,8 +28,8 @@ heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
               hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date)]
                                 ),
               inherit = F,
-              line = list(width = 2, color = line_color),
-              marker = list(size = 4, color = line_color)
+              line = list(width = 2, color = c_primary_trace),
+              marker = list(size = 4, color = c_primary_trace)
               )
     
     if (sum(dt$out_sum[which(dt$name == input_route & dt$date == input_date)]) > 0) {
@@ -42,7 +42,7 @@ heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
                      mode = 'markers',
                      type = 'scatter',
                      inherit = F,
-                     marker = list(size = 4, color = marker_color)
+                     marker = list(size = 4, color = c_dots)
       )
     }
     

@@ -15,16 +15,17 @@ raw_travel_times <- function(dt, input_route, input_date){
                  name = 'travel time', 
                  mode = 'lines+markers',
                  type = 'scatter',
-                 line = list(width = 2),
-                 marker = list(size = 4))
+                 line = list(width = 2, color = c_primary_trace),
+                 marker = list(size = 4, color = c_primary_trace))
   if (sum(dt$outlier[which(dt$name == input_route & dt$date == input_date)]) > 0) {
     p <- add_trace(p, x = dt$updatetime[which(dt$name == input_route & dt$date == input_date & dt$outlier == 1)],
                    y = dt$delay[which(dt$name == input_route & dt$date == input_date & dt$outlier == 1)],
                    hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date & dt$outlier == 1)],
-                                     "<br> N :", dt$count[which(dt$name == input_route & dt$date == input_date & dt$outlier == 1)]),
+                                     "<br> Outlier respecto de :", dt$count[which(dt$name == input_route & dt$date == input_date & dt$outlier == 1)]),
                    name = 'outlier',
                    mode = 'markers',
-                   type = 'scatter'
+                   type = 'scatter',
+                   marker = list(color = c_dots)
     )
   }
   #TODO: dplyr "%>%" operator is not working properly 
