@@ -1,10 +1,11 @@
-rproj_dir <- rprojroot::find_rstudio_root_file()
+# rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
-source(file.path(rproj_dir,"utils","getLibrary.R"))
+#source(file.path(rproj_dir,"utils","library.R"))
 
-getLibrary("data.table")
-getLibrary("lubridate")
-getLibrary("dplyr")
+library("data.table")
+library("lubridate")
+library("dplyr")
 
 get_outliers <- function(dt, input_time_grouper, day_type_grouper = 'weekday'){
 

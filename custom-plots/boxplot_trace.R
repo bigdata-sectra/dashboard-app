@@ -1,13 +1,14 @@
 # get the path of the project file in order to normalize sources
-rproj_dir <- rprojroot::find_rstudio_root_file()
+# rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
 source(file.path(rproj_dir,"utils","plot_parameters.R"))
-source(file.path(rproj_dir,"utils","getLibrary.R"))
+#source(file.path(rproj_dir,"utils","library.R"))
 source(file.path(rproj_dir,"utils","get_day_type.R"))
 
-getLibrary("plotly")
-getLibrary("lubridate")
-getLibrary("dplyr")
+library("plotly")
+library("lubridate")
+library("dplyr")
 
 boxplot_trace <- function(dt, dt_grouped, input_day_type, input_route, input_date){
   if (input_day_type == 'day_type') {

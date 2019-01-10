@@ -1,10 +1,11 @@
 # get the path of the project file in order to normalize sources
-rproj_dir <- rprojroot::find_rstudio_root_file()
+# rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
 source(file.path(rproj_dir,"utils","plot_parameters.R"))
-source(file.path(rproj_dir,"utils","getLibrary.R"))
+#source(file.path(rproj_dir,"utils","library.R"))
 
-getLibrary("plotly")
+library("plotly")
 
 
 raw_travel_times <- function(dt, input_route, input_date){

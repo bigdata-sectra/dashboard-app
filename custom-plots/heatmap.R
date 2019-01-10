@@ -1,11 +1,12 @@
-rproj_dir <- rprojroot::find_rstudio_root_file()
+# rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
-source(file.path(rproj_dir,"utils","getLibrary.R"))
+#source(file.path(rproj_dir,"utils","library.R"))
 source(file.path(rproj_dir,"utils","plot_parameters.R"))
 
-getLibrary("plotly")
-getLibrary("lubridate")
-getLibrary("dplyr")
+library("plotly")
+library("lubridate")
+library("dplyr")
 
 heatmap_w_outliers <- function(dt, input_route, input_time_grouper, input_date){
   
