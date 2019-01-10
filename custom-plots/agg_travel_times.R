@@ -10,21 +10,23 @@ agg_travel_times <- function(dt, input_route, input_date, input_time_grouper){
   p <- plot_ly() %>%
     add_trace(x = dt$updatetime[which(dt$name == input_route & dt$date == input_date)], 
               y = dt$delay[which(dt$name == input_route & dt$date == input_date)],
+              hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date)]),
               name = 'travel time agreggated',
               type = 'scatter', 
               mode = 'lines+markers', 
-              line = list(width = 2),
-              marker = list(size = 4))
+              line = list(width = 2, color = c_primary_trace),
+              marker = list(size = 4, color = c_primary_trace))
     
     if (sum(dt$out_sum[which(dt$name == input_route & dt$date == input_date)]) > 0) {
       p <- add_trace(p, 
                      x = dt$updatetime[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
                      y = dt$delay[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
                      hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)],
-                                       "<br> N :", dt$out_sum[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)]),
+                                       "<br> outliers agrupados :", dt$out_sum[which(dt$name == input_route & dt$date == input_date & dt$out_sum > 0)]),
                      name = 'calculated with outliers',
                      mode = 'markers',
-                     type = 'scatter'
+                     type = 'scatter',
+                     marker = list(color = c_dots)
                      )
     }
     p <- layout(p, title = paste('Perfil agregados cada', input_time_grouper,'minutos para el dia', input_date, '(con outliers)'), 

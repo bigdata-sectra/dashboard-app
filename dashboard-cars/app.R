@@ -11,6 +11,7 @@ source(file.path(rproj_dir,"custom-functions","outliers.R"))
 source(file.path(rproj_dir,"custom-plots","route_map.R"))
 source(file.path(rproj_dir,"custom-plots","raw_travel_times.R"))
 source(file.path(rproj_dir,"custom-plots","boxplot.R"))
+source(file.path(rproj_dir,"custom-plots","boxplot_trace.R"))
 source(file.path(rproj_dir,"custom-plots","agg_travel_times.R"))
 source(file.path(rproj_dir,"custom-plots","agg_travel_times_w_o_outliers.R"))
 source(file.path(rproj_dir,"custom-plots","heatmap.R"))
@@ -68,7 +69,8 @@ ui <- dashboardPage(
               fluidRow(
                 tabBox(
                   title = "",
-                  tabPanel("Boxplot", withSpinner(plotlyOutput("outliers_boxplots"))),
+                  tabPanel("Analisis día", withSpinner(plotlyOutput("boxplots_trace"))),
+                  tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
                   tabPanel("info", "")
                 ),
                 tabBox(
@@ -136,6 +138,29 @@ server <- function(input, output) {
       group_by(name, date, updatetime = floor_date(tt_dt_w_outliers$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
       summarise(delay = mean(delay), out_sum = sum(outlier))
     })
+  
+  # boxplots with trace of current date
+  output$boxplots_trace <- renderPlotly({
+    tt_dt_out <- tt_dt_w_outliers()
+    
+    validate(
+      need(nrow(tt_dt_out)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
+    )
+    
+    tt_dt_grouped <- tt_dt_grouped()
+    tt_dt_grouped <- tt_dt_grouped[which(tt_dt_grouped$date == input$date1),]
+    
+    tt_dt_grouped$floor_hour <- ifelse(hour(tt_dt_grouped$updatetime) < 10, paste('0', hour(tt_dt_grouped$updatetime), sep=''), hour(tt_dt_grouped$updatetime))
+    tt_dt_grouped$floor_minute <- ifelse(minute(tt_dt_grouped$updatetime) < 10, paste('0', minute(tt_dt_grouped$updatetime), sep=''), minute(tt_dt_grouped$updatetime))
+    tt_dt_grouped$floor_time <- paste(tt_dt_grouped$floor_hour, tt_dt_grouped$floor_minute, sep=":")
+    
+    validate(
+      need(nrow(tt_dt_grouped)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
+    )
+    
+    boxplot_trace(tt_dt_out, tt_dt_grouped, input$day_type_grouper, input$route, input$date1)
+  })
+  
   
   # plot of agreggated data
   output$travel_time_agg_plot <- renderPlotly({

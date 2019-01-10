@@ -10,11 +10,12 @@ agg_travel_times_w_o_outliers <- function(dt, input_route, input_date, input_tim
   p <- plot_ly() %>%
     add_trace(x = dt$updatetime[which(dt$name == input_route & dt$date == input_date)], 
               y = dt$delay[which(dt$name == input_route & dt$date == input_date)],
+              hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date)]),
               name = 'travel time agreggated',
               type = 'scatter', 
               mode = 'lines+markers', 
-              line = list(width = 2),
-              marker = list(size = 4)
+              line = list(width = 2, color = c_primary_trace),
+              marker = list(size = 4, color = c_primary_trace)
               # error_y = list(array = dt$stdv[which(dt$name == input_route & dt$date == input_date)],
               #                opacity = 0.5)
     ) %>%

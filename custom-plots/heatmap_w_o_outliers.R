@@ -19,19 +19,7 @@ heatmap_w_o_outliers <- function(dt, input_route, input_time_grouper, input_date
                z = dt$delay[which(dt$name == input_route)], 
                type = "heatmap",
                name = 'heatmap',
-               colors = colorRamp(c("#4ECDC4", "#FF6B6B"))) %>%
-    add_trace(x = dt$floor_time[which(dt$name == input_route & dt$date == input_date)],
-              y = dt$date[which(dt$name == input_route & dt$date == input_date)],
-              name = as.character(input_date),
-              type = "scatter",
-              mode = 'lines+markers',
-              hovertext = paste("Value :", dt$delay[which(dt$name == input_route & dt$date == input_date)]
-                                ),
-              inherit = F,
-              line = list(width = 2, color = line_color),
-              marker = list(size = 4, color = line_color)
-              )%>%
-    #add_segments(x = min(dt$floor_time), xend = max(dt$floor_time), y = input_date, yend = input_date, inherit = F) %>%
+               colors = colorRamp(c(c_scale_low, c_scale_high))) %>%
     layout(title = paste('Mapa de calor cada', input_time_grouper,'mins (sin outliers)')) %>%
     layout(margin = plot_margins) %>%
     layout(hovermode = 'compare')
