@@ -14,8 +14,8 @@ travel_times_processing <- function() {
   travel_times_dt <- unique(travel_times_dt, by=c("name", "updatetime"))
   
   travel_times_dt$updatetime <- fastPOSIXct(travel_times_dt$updatetime, tz = "GMT")
-  travel_times_dt <- travel_times_dt[which(travel_times_dt$updatetime < fastPOSIXct("2018-12-01") &
-                                             travel_times_dt$updatetime >= fastPOSIXct("2018-11-01")),]
+  # travel_times_dt <- travel_times_dt[which(travel_times_dt$updatetime < fastPOSIXct("2018-12-01") &
+  #                                            travel_times_dt$updatetime >= fastPOSIXct("2018-11-01")),]
 
   travel_times_dt <- dplyr::inner_join(travel_times_dt, routes_dt[, c("name", "length")], by = "name")
 

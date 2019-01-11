@@ -31,6 +31,14 @@ tt_dt <- travel_times_processing()
 r_dt <- routes_processing()
 routes_names <- sort(unique(tt_dt$name))
 
+#----- initial parameters -----#
+initial_route <- routes_names[length(routes_names)]
+min_date <- min(tt_dt$date[which(tt_dt$name == initial_route)])
+max_date <- max(tt_dt$date[which(tt_dt$name == initial_route)])
+start_date <- min_date
+end_date <- if(start_date + 30 < max_date){start_date + 30}else{max_date}
+default_date <- if(min_date + 1 < max_date ){min_date + 1}else{max_date}
+
 # Define UI for application
 ui <- dashboardPage(
   dashboardHeader(title = "Tiempos de viaje"),
@@ -41,36 +49,30 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
-    
     tabItems(
       tabItem(tabName = "dashboard",
               fluidRow(
                 box(
-                  title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE,
-                  selectInput('route', label = 'Ruta: ', choices = routes_names, selected = routes_names[length(routes_names)]),   
-                  dateInput('date1', label = 'Fecha: ', value = as.Date("2018-11-05")),
-                  sliderInput('time_grouper', label = 'Selecciona un intervalo para agrupar los valores: ', min = 5, max = 60, value = 30, step = 5),  
-                  selectizeInput('day_type_grouper', label = "Selecciona la manera en que se agrupan los valores: ", choices = c('Tipo de día [L/S/D]' = 'day_type', 'Día de la semana' = 'weekday'))
-                ),
+                  title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE, width = 12,
+                  selectInput('route', label = 'Ruta: ', 
+                              choices = routes_names, 
+                              selected = initial_route),
+                  dateRangeInput('date_range', label = 'Seleccione un rango de fechas a analizar:',
+                                 min = min_date,
+                                 max = max_date,
+                                 start = start_date,
+                                 end = end_date),
+                  sliderInput('time_grouper', 
+                              label = 'Selecciona un intervalo para agrupar los valores: ', 
+                              min = 5, max = 60, value = 30, step = 5),  
+                  selectizeInput('day_type_grouper', label = "Selecciona la manera en que se agrupan los valores: ", 
+                                 choices = c('Tipo de día [L/S/D]' = 'day_type', 'Día de la semana' = 'weekday'))
+                )
+              ),
+              fluidRow(
                 box(
-                  title = "Mapa", status = "primary", solidHeader = TRUE, collapsible = TRUE,
+                  title = "Mapa", status = "primary",
                   withSpinner(leafletOutput("routes_map"))
-                )
-              ),
-              fluidRow(
-                tabBox(
-                  title = "Datos por día", width = 12,
-                  tabPanel("Agrupados (c/o)", withSpinner(plotlyOutput("travel_time_agg_plot"))),
-                  tabPanel("Agrupados (s/o)", withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot"))),
-                  tabPanel("Crudos", withSpinner(plotlyOutput("travel_time_plot")))
-                )
-              ),
-              fluidRow(
-                tabBox(
-                  title = "",
-                  tabPanel("Analisis día", withSpinner(plotlyOutput("boxplots_trace"))),
-                  tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
-                  tabPanel("info", "")
                 ),
                 tabBox(
                   title = "",
@@ -78,7 +80,30 @@ ui <- dashboardPage(
                   tabPanel("Heatmap (s/o)", withSpinner(plotlyOutput("travel_time_heatmap_w_o_outliers"))),
                   tabPanel("info", "")
                 )
-              ) 
+              ),
+              fluidRow(
+                box(
+                  title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE, width = 12,
+                  dateInput('date1', label = 'Fecha: ',
+                            min = min_date,
+                            max = max_date,
+                            value = default_date)
+                )
+              ),
+              fluidRow(
+                tabBox(
+                  title = "Datos por día",
+                  tabPanel("Agrupados (c/o)", withSpinner(plotlyOutput("travel_time_agg_plot"))),
+                  tabPanel("Agrupados (s/o)", withSpinner(plotlyOutput("travel_time_agg_w_o_outliers_plot"))),
+                  tabPanel("Crudos", withSpinner(plotlyOutput("travel_time_plot")))
+                ),
+                tabBox(
+                  title = "",
+                  tabPanel("Analisis día", withSpinner(plotlyOutput("boxplots_trace"))),
+                  tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
+                  tabPanel("info", "")
+                )
+              )
       ),
       tabItem(tabName = "about-us",
               h2("Desarrollado por el equipo de Big Data en Transporte de Sectra, MTT.")
@@ -88,24 +113,71 @@ ui <- dashboardPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
   
-  # plot the map of a route
-  output$routes_map <- renderLeaflet({
-    route_map(r_dt,input$route)
+  # create the list of dates to update inputs given the route name
+  dates_list <- reactive({
+    updated_min_date <- min(tt_dt$date[which(tt_dt$name == input$route)])
+    updated_max_date <- max(tt_dt$date[which(tt_dt$name == input$route)])
+    updated_start_date <- updated_min_date
+    updated_end_date <- if(updated_start_date + 30 < updated_max_date){updated_start_date + 30}else{updated_max_date}
+    c(updated_min_date,updated_max_date,updated_start_date,updated_end_date)
   })
+  
+  # update range input
+  observe({
+    updateDateRangeInput(session, "date_range",
+                         label = 'Seleccione un rango de fechas a analizar:',
+                         min = dates_list()[1],
+                         max = dates_list()[2],
+                         start = dates_list()[3],
+                         end = dates_list()[4]
+    )
+  })
+  
+  # create updated defaul date
+  updated_defaul_date <- reactive({
+    if(min(input$date_range) + 1 < max(input$date_range)){min(input$date_range) + 1}else{max(input$date_range)}
+  })
+  
+  # update date input
+  observe({
+    updateDateInput(session, "date1",
+                    label = 'Fecha: ',
+                    min = min(input$date_range),
+                    max = max(input$date_range),
+                    value = updated_defaul_date()
+    )
+  })
+  
+  #----- reavtives dataframes -----#
   
   # filtering by route name to speed things up
   tt_dt_f <- reactive({
-    tt_dt[which(tt_dt$name == input$route),]
+    tt_dt[which(tt_dt$name == input$route & tt_dt$date >= min(input$date_range) & tt_dt$date <= max(input$date_range)),]
   })
-  
+    
   # calculo de outliers
   tt_dt_w_outliers <- reactive({
     get_outliers(tt_dt_f(), 
                  input$time_grouper, 
                  day_type_grouper = input$day_type_grouper)
     })
+  
+  # calculate data frame grouped
+  tt_dt_grouped <- reactive({
+    tt_dt_w_outliers <- tt_dt_w_outliers()
+    tt_dt_w_outliers %>%
+      group_by(name, date, updatetime = floor_date(tt_dt_w_outliers$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
+      summarise(delay = mean(delay), out_sum = sum(outlier))
+  })
+  
+  #----- plots -----#
+  
+  # plot the map of a route
+  output$routes_map <- renderLeaflet({
+    route_map(r_dt,input$route)
+  })
   
   # plot of raw data with marked outliers
   output$travel_time_plot <- renderPlotly({
@@ -128,14 +200,6 @@ server <- function(input, output) {
     )
     
     boxplot(tt_dt_out, input$day_type_grouper, input$route, input$date1)
-    })
-  
-  # calculate data frame grouped
-  tt_dt_grouped <- reactive({
-    tt_dt_w_outliers <- tt_dt_w_outliers()
-    tt_dt_w_outliers %>%
-      group_by(name, date, updatetime = floor_date(tt_dt_w_outliers$updatetime, paste(as.character(input$time_grouper), " mins"))) %>%
-      summarise(delay = mean(delay), out_sum = sum(outlier))
     })
   
   # boxplots with trace of current date
