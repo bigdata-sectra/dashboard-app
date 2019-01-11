@@ -1,9 +1,7 @@
 # get the path of the project file in order to normalize sources
-# rproj_dir <- rprojroot::find_rstudio_root_file()
 rproj_dir <- getwd()
 
 source(file.path(rproj_dir,"utils","plot_parameters.R"))
-#source(file.path(rproj_dir,"utils","library.R"))
 source(file.path(rproj_dir,"utils","get_day_type.R"))
 
 library("plotly")

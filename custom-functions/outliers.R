@@ -1,7 +1,4 @@
-# rproj_dir <- rprojroot::find_rstudio_root_file()
 rproj_dir <- getwd()
-
-#source(file.path(rproj_dir,"utils","library.R"))
 
 library("data.table")
 library("lubridate")

@@ -1,10 +1,8 @@
 # get the path of the project file in order to normalize sources
-#rproj_dir <- rprojroot::find_rstudio_root_file()
 rproj_dir <- getwd()
 
 # source parameters and functions
 source(file.path(rproj_dir,"utils","paths.R"))
-#source(file.path(rproj_dir,"utils","library.R"))
 
 source(file.path(rproj_dir,"custom-functions","data_processing.R"))
 source(file.path(rproj_dir,"custom-functions","outliers.R"))
