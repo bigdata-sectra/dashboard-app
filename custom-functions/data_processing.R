@@ -1,12 +1,11 @@
-rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
-source(file.path(rproj_dir,"utils","getLibrary.R"))
 source(file.path(rproj_dir,"utils","paths.R"))
 
-getLibrary("data.table")
-getLibrary("fasttime")
-getLibrary("lubridate")
-getLibrary("dplyr")
+library("data.table")
+library("fasttime")
+library("lubridate")
+library("dplyr")
 
 travel_times_processing <- function() {
   travel_times_dt <- fread(file.path(data_20181217,"travel_times_17.12.2018.csv"))

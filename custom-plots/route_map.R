@@ -1,12 +1,11 @@
 # get the path of the project file in order to normalize sources
-rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
-source(file.path(rproj_dir,"utils","getLibrary.R"))
 source(file.path(rproj_dir,"utils","get_polyline.R"))
 source(file.path(rproj_dir,"utils","get_arrowhead.R"))
 
-getLibrary("leaflet")
-getLibrary("dplyr")
+library("leaflet")
+library("dplyr")
 
 route_map <- function(r_dt, input_route){
   polyline_matrix <- get_polyline_matrix(r_dt$line[which(r_dt$name == input_route)])
