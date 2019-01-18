@@ -21,6 +21,8 @@ travel_times_processing <- function() {
 
   travel_times_dt$delay <- 1000 * travel_times_dt$time / travel_times_dt$length
   
+  travel_times_dt$historicdelay <- 1000 * travel_times_dt$historictime / travel_times_dt$length
+  
   travel_times_dt$date <- as.Date(travel_times_dt$updatetime)
   
   travel_times_dt$weekday <- wday(travel_times_dt$date, week_start = 1)

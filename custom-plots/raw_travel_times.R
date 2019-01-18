@@ -27,6 +27,18 @@ raw_travel_times <- function(dt, input_route, input_date){
                    marker = list(color = c_dots)
     )
   }
+  
+  # adding trace of historic delay
+  p <- add_trace(p, x = dt$updatetime[which(dt$name == input_route & dt$date == input_date)],
+                 y = dt$historicdelay[which(dt$name == input_route & dt$date == input_date)], 
+                 name = 'historic travel time', 
+                 mode = 'lines+markers',
+                 type = 'scatter',
+                 line = list(width = 2, color = c_background_trace),
+                 marker = list(size = 4, color = c_background_trace),
+                 opacity = 0.8,
+                 visible = "legendonly")
+  
   #TODO: dplyr "%>%" operator is not working properly 
   p <- layout(p, title = paste('Datos crudos dia', input_date))
   p <- layout(p, yaxis = list(title="s/km"))
