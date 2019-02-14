@@ -31,13 +31,20 @@ tt_dt <- travel_times_processing()
 r_dt <- routes_processing()
 routes_names <- sort(unique(tt_dt$name))
 
+dict_dt <- dict_loading()
+main_streets <- sort(unique(dict_dt$main_street))
+
 #----- initial parameters -----#
+#TODO!
 initial_route <- routes_names[length(routes_names)]
 min_date <- min(tt_dt$date[which(tt_dt$name == initial_route)])
 max_date <- max(tt_dt$date[which(tt_dt$name == initial_route)])
 start_date <- min_date
 end_date <- if(start_date + 30 < max_date){start_date + 30}else{max_date}
 default_date <- if(min_date + 1 < max_date ){min_date + 1}else{max_date}
+
+#---
+initial_main_street <- main_streets[length(main_streets)]
 
 # Define UI for application
 ui <- dashboardPage(
@@ -57,6 +64,11 @@ ui <- dashboardPage(
                   selectInput('route', label = 'Ruta: ', 
                               choices = routes_names, 
                               selected = initial_route),
+                  selectInput('main_street', label = 'Eje: ',
+                              choices = main_streets,
+                              selected = initial_main_street),
+                  uiOutput('direction'),
+                  uiOutput('from_to'),
                   dateRangeInput('date_range', label = 'Seleccione un rango de fechas a analizar:',
                                  min = min_date,
                                  max = max_date,
@@ -114,6 +126,27 @@ ui <- dashboardPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  
+  observe({  
+    senses <- unique(dict_dt$sense[which(dict_dt$main_street==input$main_street)])
+    selected_sense <- senses[1]
+    output$direction<-renderUI({
+      selectInput('sense', 'Sentido: ', choices = senses, selected = selected_sense)
+    })
+  })  
+
+  observe({
+    from_int <- dict_dt$from_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
+    to_int <- dict_dt$to_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
+    pairs_of_int <- paste(from_int, '-', to_int)
+    selected_pair <- pairs_of_int[1]
+    output$from_to<-renderUI({
+      selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = selected_pair)
+    })
+  })
+#  output$from_to<-renderUI({
+#    selectInput('street_pairs', 'Origen-Destino: ', choices = senses, selected = selected_sense)
+#  })
   
   # create the list of dates to update inputs given the route name
   dates_list <- reactive({

@@ -6,6 +6,8 @@ library("data.table")
 library("fasttime")
 library("lubridate")
 library("dplyr")
+library("httr")
+library("readr")
 
 travel_times_processing <- function() {
   travel_times_dt <- fread(file.path(data_20181217,"travel_times_17.12.2018.csv"))
@@ -41,5 +43,13 @@ routes_processing <- function() {
   
   
   return(routes_dt)
+}
+
+dict_loading <- function(){
+  x <- GET("https://raw.githubusercontent.com/bigdata-sectra/documents-hub/master/waze/dicc-tramos-waze.csv",
+           authenticate(Sys.getenv("GITHUB_USER"),Sys.getenv("GITHUB_R_TOKEN")))
+  dict_dt <- content(x, type="text/csv", encoding = 'latin1')
+  return(dict_dt)
+  
 }
 

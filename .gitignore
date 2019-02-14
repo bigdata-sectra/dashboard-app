@@ -4,6 +4,7 @@
 .Ruserdata
 /packrat
 .Rprofile
+.Renviron
 /raw-data
 /rsconnect
 packrat/lib*/
