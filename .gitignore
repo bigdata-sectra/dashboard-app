@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-packrat/lib*/
 /packrat
 .Rprofile
 /raw-data
 /rsconnect
+packrat/lib*/
