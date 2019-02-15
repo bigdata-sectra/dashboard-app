@@ -32,19 +32,23 @@ r_dt <- routes_processing()
 routes_names <- sort(unique(tt_dt$name))
 
 dict_dt <- dict_loading()
-main_streets <- sort(unique(dict_dt$main_street))
+
 
 #----- initial parameters -----#
-#TODO!
-initial_route <- routes_names[length(routes_names)]
+main_streets <- sort(unique(dict_dt$main_street))
+
+initial_main_street <- main_streets[length(main_streets)]
+initial_sense <- unique(dict_dt$sense[which(dict_dt$main_street == initial_main_street)])[1]
+initial_from <- dict_dt$from_intersection[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense)][1]
+initial_to <- dict_dt$to_intersection[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense)][1]
+initial_route <- dict_dt$name[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense 
+                                    & dict_dt$from_intersection == initial_from & dict_dt$to_intersection == initial_to)]
+
 min_date <- min(tt_dt$date[which(tt_dt$name == initial_route)])
 max_date <- max(tt_dt$date[which(tt_dt$name == initial_route)])
 start_date <- min_date
 end_date <- if(start_date + 30 < max_date){start_date + 30}else{max_date}
 default_date <- if(min_date + 1 < max_date ){min_date + 1}else{max_date}
-
-#---
-initial_main_street <- main_streets[length(main_streets)]
 
 # Define UI for application
 ui <- dashboardPage(
@@ -61,9 +65,6 @@ ui <- dashboardPage(
               fluidRow(
                 box(
                   title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE, width = 12,
-                  selectInput('route', label = 'Ruta: ', 
-                              choices = routes_names, 
-                              selected = initial_route),
                   selectInput('main_street', label = 'Eje: ',
                               choices = main_streets,
                               selected = initial_main_street),
@@ -115,12 +116,6 @@ ui <- dashboardPage(
                   tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
                   tabPanel("info", "")
                 )
-              ),
-              fluidRow(
-                box(
-                  title = "log", status = "primary",
-                  withSpinner(textOutput("log"))
-                )
               )
       ),
       tabItem(tabName = "about-us",
@@ -135,9 +130,8 @@ server <- function(input, output, session) {
   
   observe({  
     senses <- unique(dict_dt$sense[which(dict_dt$main_street==input$main_street)])
-    selected_sense <- senses[1]
     output$direction<-renderUI({
-      selectInput('sense', 'Sentido: ', choices = senses, selected = selected_sense)
+      selectInput('sense', 'Sentido: ', choices = senses, selected = initial_sense)
     })
   })  
 
@@ -145,9 +139,9 @@ server <- function(input, output, session) {
     from_int <- dict_dt$from_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
     to_int <- dict_dt$to_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
     pairs_of_int <- paste(from_int, '-', to_int, sep='')
-    selected_pair <- pairs_of_int[1]
+    initial_pair <- paste(initial_from, '-', initial_to, sep='')
     output$from_to<-renderUI({
-      selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = selected_pair)
+      selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = initial_pair)
     })
   })
   
@@ -158,17 +152,15 @@ server <- function(input, output, session) {
                          dict_dt$from_intersection==from_int & dict_dt$to_intersection==to_int)]
   })
 
-  output$log <- renderText(
-    input_route()
-  )
-  
   # create the list of dates to update inputs given the route name
   dates_list <- reactive({
-    updated_min_date <- min(tt_dt$date[which(tt_dt$name == input$route)])
-    updated_max_date <- max(tt_dt$date[which(tt_dt$name == input$route)])
-    updated_start_date <- updated_min_date
-    updated_end_date <- if(updated_start_date + 30 < updated_max_date){updated_start_date + 30}else{updated_max_date}
-    c(updated_min_date,updated_max_date,updated_start_date,updated_end_date)
+    if(!identical(character(0), input_route())){    
+      updated_min_date <- min(tt_dt$date[which(tt_dt$name == input_route())])
+      updated_max_date <- max(tt_dt$date[which(tt_dt$name == input_route())])
+      updated_start_date <- updated_min_date
+      updated_end_date <- if(updated_start_date + 30 < updated_max_date){updated_start_date + 30}else{updated_max_date}
+      c(updated_min_date,updated_max_date,updated_start_date,updated_end_date)
+      }
   })
   
   # update range input
@@ -183,7 +175,7 @@ server <- function(input, output, session) {
   })
   
   # create updated defaul date
-  updated_defaul_date <- reactive({
+  updated_default_date <- reactive({
     if(min(input$date_range) + 1 < max(input$date_range)){min(input$date_range) + 1}else{max(input$date_range)}
   })
   
@@ -193,15 +185,15 @@ server <- function(input, output, session) {
                     label = 'Fecha: ',
                     min = min(input$date_range),
                     max = max(input$date_range),
-                    value = updated_defaul_date()
+                    value = updated_default_date()
     )
   })
   
-  #----- reavtives dataframes -----#
+  #----- reactives dataframes -----#
   
   # filtering by route name to speed things up
   tt_dt_f <- reactive({
-    tt_dt[which(tt_dt$name == input$route & tt_dt$date >= min(input$date_range) & tt_dt$date <= max(input$date_range)),]
+    tt_dt[which(tt_dt$name == input_route() & tt_dt$date >= min(input$date_range) & tt_dt$date <= max(input$date_range)),]
   })
     
   # calculo de outliers
@@ -223,7 +215,10 @@ server <- function(input, output, session) {
   
   # plot the map of a route
   output$routes_map <- renderLeaflet({
-    route_map(r_dt,input$route)
+    if(!identical(character(0), input_route())){
+      route_map(r_dt,as.character(input_route()))
+    }
+
   })
   
   # plot of raw data with marked outliers
@@ -235,7 +230,7 @@ server <- function(input, output, session) {
       need(nrow(tt_dt_out)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
-    raw_travel_times(tt_dt_out, input$route, input$date1)
+    raw_travel_times(tt_dt_out, input_route(), input$date1)
     })
   
   # plot of boxplots for every time interval
@@ -246,7 +241,7 @@ server <- function(input, output, session) {
       need(nrow(tt_dt_out)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
-    boxplot(tt_dt_out, input$day_type_grouper, input$route, input$date1)
+    boxplot(tt_dt_out, input$day_type_grouper, input_route(), input$date1)
     })
   
   # boxplots with trace of current date
@@ -268,7 +263,7 @@ server <- function(input, output, session) {
       need(nrow(tt_dt_grouped)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
-    boxplot_trace(tt_dt_out, tt_dt_grouped, input$day_type_grouper, input$route, input$date1)
+    boxplot_trace(tt_dt_out, tt_dt_grouped, input$day_type_grouper, input_route(), input$date1)
   })
   
   
@@ -281,7 +276,7 @@ server <- function(input, output, session) {
       need(nrow(tt_dt_grouped)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
-    agg_travel_times(tt_dt_grouped, input$route, input$date1, input$time_grouper)
+    agg_travel_times(tt_dt_grouped, input_route(), input$date1, input$time_grouper)
   })
   
   # calculate data frame grouped w/o outliers
@@ -302,19 +297,19 @@ server <- function(input, output, session) {
       need(nrow(tt_dt_grouped_w_o_outliers)>0, "NO EXISTEN DATOS DISPONIBLES PARA LA SELECCIÓN!")
     )
     
-    agg_travel_times_w_o_outliers(tt_dt_grouped_w_o_outliers, input$route, input$date1, input$time_grouper)
+    agg_travel_times_w_o_outliers(tt_dt_grouped_w_o_outliers, input_route(), input$date1, input$time_grouper)
   })
   
   # plot heatmap w/ outliers
   output$travel_time_heatmap <- renderPlotly({
     tt_dt_grouped <- tt_dt_grouped()
-    heatmap_w_outliers(tt_dt_grouped,input$route,input$time_grouper, input$date1) 
+    heatmap_w_outliers(tt_dt_grouped,input_route(),input$time_grouper, input$date1) 
   })
   
   # plot heatmap w/o outliers
   output$travel_time_heatmap_w_o_outliers <- renderPlotly({
     tt_dt_grouped_w_o_outliers <- tt_dt_grouped_w_o_outliers()
-    heatmap_w_o_outliers(tt_dt_grouped_w_o_outliers,input$route,input$time_grouper, input$date1) 
+    heatmap_w_o_outliers(tt_dt_grouped_w_o_outliers,input_route(),input$time_grouper, input$date1) 
   })
   
 }
