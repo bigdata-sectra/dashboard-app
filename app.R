@@ -115,6 +115,12 @@ ui <- dashboardPage(
                   tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
                   tabPanel("info", "")
                 )
+              ),
+              fluidRow(
+                box(
+                  title = "log", status = "primary",
+                  withSpinner(textOutput("log"))
+                )
               )
       ),
       tabItem(tabName = "about-us",
@@ -138,15 +144,23 @@ server <- function(input, output, session) {
   observe({
     from_int <- dict_dt$from_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
     to_int <- dict_dt$to_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
-    pairs_of_int <- paste(from_int, '-', to_int)
+    pairs_of_int <- paste(from_int, '-', to_int, sep='')
     selected_pair <- pairs_of_int[1]
     output$from_to<-renderUI({
       selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = selected_pair)
     })
   })
-#  output$from_to<-renderUI({
-#    selectInput('street_pairs', 'Origen-Destino: ', choices = senses, selected = selected_sense)
-#  })
+  
+  input_route <- reactive({
+    from_int <- unlist(strsplit(as.character(input$pairs), "-"))[1]
+    to_int <- unlist(strsplit(as.character(input$pairs), "-"))[2]
+    dict_dt$name[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense & 
+                         dict_dt$from_intersection==from_int & dict_dt$to_intersection==to_int)]
+  })
+
+  output$log <- renderText(
+    input_route()
+  )
   
   # create the list of dates to update inputs given the route name
   dates_list <- reactive({
