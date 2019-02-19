@@ -10,8 +10,8 @@ library("httr")
 library("readr")
 
 travel_times_processing <- function() {
-  travel_times_dt <- fread(file.path(data_20190214,"travel_times_2019.02.14.csv"))
-  routes_dt <- fread(file.path(data_20190214,"routes_2019.02.14.csv"))
+  travel_times_dt <- fread(file.path(data_20190219,"travel_times_2019.02.19.csv"))
+  routes_dt <- fread(file.path(data_20190219,"routes_2019.02.19.csv"))
   
   travel_times_dt <- unique(travel_times_dt, by=c("name", "updatetime"))
   
@@ -38,7 +38,7 @@ travel_times_processing <- function() {
 }
 
 routes_processing <- function() {
-  routes_dt <- fread(file.path(data_20190214,"routes_2019.02.14.csv"))
+  routes_dt <- fread(file.path(data_20190219,"routes_2019.02.19.csv"))
   routes_dt$start_date <- fastPOSIXct(routes_dt$start_date)
   
   
