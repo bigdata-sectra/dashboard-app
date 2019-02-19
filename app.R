@@ -6,6 +6,7 @@ source(file.path(rproj_dir,"utils","paths.R"))
 
 source(file.path(rproj_dir,"custom-functions","data_processing.R"))
 source(file.path(rproj_dir,"custom-functions","outliers.R"))
+source(file.path(rproj_dir,"custom-functions","info.R"))
 
 source(file.path(rproj_dir,"custom-plots","route_map.R"))
 source(file.path(rproj_dir,"custom-plots","raw_travel_times.R"))
@@ -91,7 +92,7 @@ ui <- dashboardPage(
                   title = "",
                   tabPanel("Heatmap (c/o)", withSpinner(plotlyOutput("travel_time_heatmap"))),
                   tabPanel("Heatmap (s/o)", withSpinner(plotlyOutput("travel_time_heatmap_w_o_outliers"))),
-                  tabPanel("info", "This is the info.")
+                  tabPanel("info", heatmap_info)
                 )
               ),
               fluidRow(
@@ -114,7 +115,7 @@ ui <- dashboardPage(
                   title = "",
                   tabPanel("Analisis día", withSpinner(plotlyOutput("boxplots_trace"))),
                   tabPanel("Análisis outliers", withSpinner(plotlyOutput("outliers_boxplots"))),
-                  tabPanel("info", "This is the info.")
+                  tabPanel("info", boxplot_info)
                 )
               )
       ),
