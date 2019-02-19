@@ -1,12 +1,11 @@
 # get the path of the project file in order to normalize sources
-rproj_dir <- rprojroot::find_rstudio_root_file()
+rproj_dir <- getwd()
 
-source(file.path(rproj_dir,"utils","getLibrary.R"))
 source(file.path(rproj_dir,"utils","get_polyline.R"))
 source(file.path(rproj_dir,"utils","get_arrowhead.R"))
 
-getLibrary("leaflet")
-getLibrary("dplyr")
+library("leaflet")
+library("dplyr")
 
 route_map <- function(r_dt, input_route){
   polyline_matrix <- get_polyline_matrix(r_dt$line[which(r_dt$name == input_route)])
@@ -28,9 +27,9 @@ route_map <- function(r_dt, input_route){
     ) %>%
     setView(lng = polyline_matrix[floor(nrow(polyline_matrix)/2),1], 
             lat = polyline_matrix[floor(nrow(polyline_matrix)/2),2], 
-            zoom = 16) %>%
-    addPolylines(lng = polyline_matrix[,1], lat = polyline_matrix[,2], color = line_color, opacity = 1) %>%
-    addPolylines(lng = arrow_head[,"x"], lat = arrow_head[,"y"], color = marker_color, opacity = 1) # arrow head
+            zoom = 15) %>%
+    addPolylines(lng = polyline_matrix[,1], lat = polyline_matrix[,2], color = c_primary_trace, opacity = 1) %>%
+    addPolylines(lng = arrow_head[,"x"], lat = arrow_head[,"y"], color = c_dots, opacity = 1) # arrow head
   
   return(l)
   
