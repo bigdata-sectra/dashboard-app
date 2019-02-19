@@ -2,8 +2,8 @@ heatmap_info <- gsub("\n", "","Las pestañas anteriores muestran mapas de calor d
 para el rango de fechas seleccionadas y agrupados según el intervalo de tiempo seleccionado en la parte superior
 de este dashboard. En la primera pestaña se muestra el mapa de calor considerando todos los datos disponibles, 
 es decir, sin filtro de outliers. A su vez, en la segunda pestaña se muestra el mapa de calor quitando 
-de los datos aquellos considerados como outliers según la metodología del boxplot (comentada en la pestaña de información 
-del panel inferior izquierdo.")
+de los datos aquellos considerados como outliers según la metodología del rango intercuartil (comentada en la pestaña de información 
+del panel inferior izquierdo).")
 
 boxplot_info <- gsub("\n", "","Las pestañas de este panel muestran diagramas de caja y bigotes (boxplots) para la categoría 
 correspondiente a la fecha seleccionada, la que viene dada según la forma en la que se decidió agrupar los valores, es decir, si se agrupa 
@@ -15,7 +15,7 @@ intercuartil como IQ = Q3 - Q1, dichos valores máximo y mínimo corresponden al m
 al menor dato que cumple con ser mayor o igual a Q1 - 1.5IQ, respectivamente. Todos aquellos datos por sobre el valor máximo y por debajo del 
 valor mínimo son considerados como valores atípicos.
 En la primera ventana de este panel se muestran, en color gris, los boxplots para la categoría correspondiente al día seleccionado y para cada 
-intervalo de tiempo seleccionado en la parte superior. A su vez, en color azul se muestra el tiempo de viaje promedio del día seleccionado, 
+intervalo de tiempo seleccionado en la parte superior. A su vez, en color azul se muestra la demora total promedio del día seleccionado, 
 en segundos/kilómetro, para cada intervalo de tiempo. Este gráfico es el mismo que el mostrado en la pestaña 'Agrupados (c/o)' del panel 
 'Datos por Día'. En la segunda pestaña se muestran, en color azul, los boxplots y todos los datos que caen dentro de cada intervalo de tiempo 
 para la categoría correspondiente al día seleccionado.
