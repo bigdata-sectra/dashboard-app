@@ -36,14 +36,25 @@ dict_dt <- dict_loading()
 
 
 #----- initial parameters -----#
-main_streets <- sort(unique(dict_dt$main_street))
+project_options <- c('mapa congestion jgibson','mapa congestion ITI', 'mapa congestion jgibson v2')
+initial_project <- project_options[length(project_options)]
 
+main_streets <- sort(unique(dict_dt$main_street[which(dict_dt$project == initial_project)]))
 initial_main_street <- main_streets[length(main_streets)]
-initial_sense <- unique(dict_dt$sense[which(dict_dt$main_street == initial_main_street)])[1]
-initial_from <- dict_dt$from_intersection[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense)][1]
-initial_to <- dict_dt$to_intersection[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense)][1]
-initial_route <- dict_dt$name[which(dict_dt$main_street == initial_main_street & dict_dt$sense == initial_sense 
-                                    & dict_dt$from_intersection == initial_from & dict_dt$to_intersection == initial_to)]
+initial_sense <- unique(dict_dt$sense[which(dict_dt$project == initial_project & dict_dt$main_street == initial_main_street)])[1]
+
+initial_from <- dict_dt$from_intersection[which(dict_dt$project == initial_project 
+                                                & dict_dt$main_street == initial_main_street 
+                                                & dict_dt$sense == initial_sense)][1]
+initial_to <- dict_dt$to_intersection[which(dict_dt$project == initial_project 
+                                            & dict_dt$main_street == initial_main_street 
+                                            & dict_dt$sense == initial_sense)][1]
+initial_route <- dict_dt$name[which(dict_dt$project == initial_project 
+                                    & dict_dt$main_street == initial_main_street 
+                                    & dict_dt$sense == initial_sense 
+                                    & dict_dt$from_intersection == initial_from 
+                                    & dict_dt$to_intersection == initial_to)]
+
 
 min_date <- min(tt_dt$date[which(tt_dt$name == initial_route)])
 max_date <- max(tt_dt$date[which(tt_dt$name == initial_route)])
@@ -66,9 +77,10 @@ ui <- dashboardPage(
               fluidRow(
                 box(
                   title = "Inputs", status = "primary", solidHeader = TRUE, collapsible = TRUE, width = 12,
-                  selectInput('main_street', label = 'Eje: ',
-                              choices = main_streets,
-                              selected = initial_main_street),
+                  selectInput('project', label = 'Tramificación: ',
+                              choices = project_options,
+                              selected = initial_project),
+                  uiOutput('main_street_sections'),
                   uiOutput('direction'),
                   uiOutput('from_to'),
                   dateRangeInput('date_range', label = 'Seleccione un rango de fechas a analizar:',
@@ -129,27 +141,40 @@ ui <- dashboardPage(
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   
+  observe({
+    sections <- unique(dict_dt$main_street[which(dict_dt$project==input$project)])
+    selected_main_street <- sections[length(sections)]
+    output$main_street_sections <- renderUI({
+      selectInput('main_street', 'Eje: ', choices = sections, selected = selected_main_street)
+    })
+  })
+  
   observe({  
-    senses <- unique(dict_dt$sense[which(dict_dt$main_street==input$main_street)])
+    senses <- unique(dict_dt$sense[which(dict_dt$project==input$project & dict_dt$main_street==input$main_street)])
+    selected_sense <- senses[length(senses)]
     output$direction<-renderUI({
-      selectInput('sense', 'Sentido: ', choices = senses, selected = initial_sense)
+      selectInput('sense', 'Sentido: ', choices = senses, selected = selected_sense)
     })
   })  
 
   observe({
-    from_int <- dict_dt$from_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
-    to_int <- dict_dt$to_intersection[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
+    from_int <- dict_dt$from_intersection[which(dict_dt$project==input$project & dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
+    to_int <- dict_dt$to_intersection[which(dict_dt$project==input$project & dict_dt$main_street==input$main_street & dict_dt$sense==input$sense)]
     pairs_of_int <- paste(from_int, '-', to_int, sep='')
-    initial_pair <- paste(initial_from, '-', initial_to, sep='')
+    
+    selected_from <- from_int[length(from_int)]
+    selected_to <- to_int[length(to_int)]
+    
+    selected_pair <- paste(selected_from, '-', selected_to, sep='')
     output$from_to<-renderUI({
-      selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = initial_pair)
+      selectInput('pairs', 'Tramo: ', choices = pairs_of_int, selected = selected_pair)
     })
   })
-  
+
   input_route <- reactive({
     from_int <- unlist(strsplit(as.character(input$pairs), "-"))[1]
     to_int <- unlist(strsplit(as.character(input$pairs), "-"))[2]
-    dict_dt$name[which(dict_dt$main_street==input$main_street & dict_dt$sense==input$sense & 
+    dict_dt$name[which(dict_dt$project==input$project & dict_dt$main_street==input$main_street & dict_dt$sense==input$sense & 
                          dict_dt$from_intersection==from_int & dict_dt$to_intersection==to_int)]
   })
 
