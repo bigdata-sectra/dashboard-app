@@ -10,8 +10,8 @@ library("httr")
 library("readr")
 
 travel_times_processing <- function() {
-  travel_times_dt <- fread(file.path(data_20190318,"travel_times_2019.03.18.csv"))
-  routes_dt <- fread(file.path(data_20190318,"routes_2019.03.18.csv"))
+  travel_times_dt <- fread(file.path(data_20190318,"travel_times_2019.04.29.csv"))
+  routes_dt <- fread(file.path(data_20190318,"routes_2019.04.29.csv"))
   
   travel_times_dt <- unique(travel_times_dt, by=c("name", "updatetime"))
   
@@ -38,7 +38,7 @@ travel_times_processing <- function() {
 }
 
 routes_processing <- function() {
-  routes_dt <- fread(file.path(data_20190318,"routes_2019.03.18.csv"))
+  routes_dt <- fread(file.path(data_20190318,"routes_2019.04.29.csv"))
   routes_dt$start_date <- fastPOSIXct(routes_dt$start_date)
   
   
@@ -46,10 +46,11 @@ routes_processing <- function() {
 }
 
 dict_loading <- function(){
-  x <- GET("https://raw.githubusercontent.com/bigdata-sectra/documents-hub/master/waze/dicc-tramos-waze.csv",
+  x <- GET("https://raw.githubusercontent.com/bigdata-sectra/documents-hub/518906459ac586448cc303d64a2412908c9af453/waze/dicc-tramos-waze.csv?token=AKAZEUMG227U77PIG7XMAJ243QRQ4",
            authenticate(Sys.getenv("GITHUB_USER"),Sys.getenv("GITHUB_R_TOKEN")))
   dict_dt <- content(x, type="text/csv", encoding = 'latin1')
   return(dict_dt)
   
 }
 
+# "https://raw.githubusercontent.com/bigdata-sectra/documents-hub/master/waze/dicc-tramos-waze.csv"

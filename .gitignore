@@ -6,5 +6,7 @@
 .Rprofile
 .Renviron
 /raw-data
+/raw_data
 /rsconnect
 packrat/lib*/
+Renvvar.sh
