@@ -10,3 +10,4 @@
 /rsconnect
 packrat/lib*/
 Renvvar.sh
+env.list
